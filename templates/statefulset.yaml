@@ -1,0 +1,187 @@
+{{- if .Values.statefulSet.enabled }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ .Values.application_name }}
+  labels:
+    app: {{ .Values.application_name }}
+  {{- with .Values.labels }}
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  replicas: {{ .Values.replicas | default "1" }}
+  revisionHistoryLimit: 3
+  serviceName: {{ .Values.application_name }}
+  selector:
+    matchLabels:
+      app: {{ .Values.application_name }}
+      {{- with .Values.labels }}
+      {{- toYaml . | nindent 6 }}
+      {{- end }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.application_name }}
+        {{- with .Values.labels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- if .Values.tolerations }}
+      tolerations: # Opcional
+        - key: {{ .Values.tolerations.key }}
+          operator: Equal
+          value: {{ .Values.tolerations.value }}
+          effect: {{ .Values.tolerations.effect }}
+      {{- end }}
+      {{- if .Values.affinity }}
+      affinity:
+        {{- if .Values.affinity.nodeAffinity }}
+        nodeAffinity:
+          {{- if .Values.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution }}
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: {{ .Values.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.key }}
+                operator: In
+                values:
+                    - {{ .Values.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.values }}
+          {{- end }}
+          {{- if .Values.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution }}
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: {{ .Values.affinity.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.weight }}
+              preference:
+                matchExpressions:
+                  - key: {{ .Values.affinity.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.key }}
+                    operator: In
+                    values:
+                    - {{ .Values.affinity.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.values }}
+          {{- end }}
+        {{- end }}
+        {{- if .Values.affinity.podAntiAffinity }}
+        podAntiAffinity:
+          {{- if .Values.affinity.podAntiAffinity.preferredDuringSchedulingIgnoredDuringExecution }}
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: {{ .Values.affinity.podAntiAffinity.preferredDuringSchedulingIgnoredDuringExecution.weight }}
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: {{ .Values.affinity.podAntiAffinity.preferredDuringSchedulingIgnoredDuringExecution.key }}
+                      operator: In
+                      values:
+                        - {{ .Values.affinity.podAntiAffinity.preferredDuringSchedulingIgnoredDuringExecution.values }}
+                topologyKey: {{ .Values.affinity.podAntiAffinity.preferredDuringSchedulingIgnoredDuringExecution.topologyKey }}
+          {{- end }}
+        {{- end }}
+      {{- end }}
+      {{- if .Values.nodeSelector }}
+      nodeSelector:
+      {{- toYaml .Values.nodeSelector | nindent 8}}
+      {{- end }}
+      {{- if .Values.imagePullSecrets }}
+      imagePullSecrets:
+      - name: {{ .Values.imagePullSecrets.name }}
+      {{- end }}
+      containers:
+      - name: {{ .Values.application_name }}
+        image: {{ .Values.image }}
+        {{- if .Values.command  }}
+        command:
+          {{- range .Values.command  }}
+          - {{ . | quote }}
+          {{- end}}
+        {{- end}}
+        {{- if .Values.args }}
+        args:
+          {{- range .Values.args  }}
+          - {{ . | quote }}
+          {{- end}}
+        {{- end}}
+        {{- if .Values.startupProbe.enabled }}
+        startupProbe:
+          periodSeconds: {{ .Values.startupProbe.periodSeconds }}
+          failureThreshold: {{ .Values.startupProbe.failureThreshold }}
+          {{- if .Values.startupProbe.httpGet.enabled }}
+          httpGet:
+            port: {{ .Values.startupProbe.httpGet.port }}
+            path: {{ .Values.startupProbe.httpGet.path }}
+          {{- end}}
+          {{- if .Values.livenessProbe.command.enabled }}
+          exec:
+            command:
+              {{ toYaml .Values.livenessProbe.command.cmd | nindent 14 | trim }}
+          {{- end }}
+        {{- end }}
+        {{- if .Values.livenessProbe.enabled }}
+        livenessProbe:
+          periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
+          initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
+          {{- if .Values.livenessProbe.httpGet.enabled }}
+          httpGet:
+            port: {{ .Values.livenessProbe.httpGet.port }}
+            path: {{ .Values.livenessProbe.httpGet.path }}
+          {{- end }}
+          {{- if .Values.livenessProbe.command.enabled }}
+          exec:
+            command:
+              {{ toYaml .Values.livenessProbe.command.cmd | nindent 14 | trim }}
+          {{- end }}
+        {{- end }}
+        {{- if .Values.resources }}
+        resources:
+        {{- if .Values.resources.requests }}
+        {{- if or .Values.resources.requests.memory .Values.resources.requests.cpu }}
+          requests:
+            {{- if .Values.resources.requests.memory }}
+            memory: {{ .Values.resources.requests.memory }}
+            {{- end }}
+            {{- if .Values.resources.requests.cpu }}
+            cpu : {{ .Values.resources.requests.cpu }}
+            {{- end }}
+        {{- else }}
+          requests: {}
+        {{- end }}
+        {{- end }}
+        {{- if .Values.resources.limits }}
+        {{- if or .Values.resources.limits.memory .Values.resources.limits.cpu }}
+          limits:
+            {{- if .Values.resources.limits.memory }}
+            memory: {{ .Values.resources.limits.memory }}
+            {{- end }}
+            {{- if .Values.resources.limits.cpu }}
+            cpu : {{ .Values.resources.limits.cpu }}
+            {{- end }}
+        {{- else }}
+          limits: {}
+        {{- end }}
+        {{- end }}
+        {{- end }}
+        ports:
+        - containerPort: {{ .Values.service.targetPort }}
+          name: http
+        {{- if .Values.envVars }}
+        env:
+          {{- range $name, $value := .Values.envVars }}
+          - name: {{ $name }}
+            value: {{ $value | quote }}
+          {{- end }}
+
+          {{- range $name, $value := .Values.envVarsRef }}
+          - name: {{ $name }}
+          {{- with $value }}
+          {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- end }}
+        {{- end }}
+
+        {{- if or .Values.configmap.enabled .Values.secrets.enabled }}
+        envFrom:
+        {{- if .Values.configmap.enabled }}
+        - configMapRef:
+            name: {{ .Values.application_name }}
+        {{- end}}
+        {{- if .Values.secrets.enabled }}
+        - secretRef:
+            name: {{ .Values.application_name }}
+        {{- end}}
+        {{- end }}
+{{- end }}

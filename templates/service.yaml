@@ -1,0 +1,21 @@
+{{- if .Values.service }}
+{{- if .Values.service.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.application_name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ .Values.application_name }}
+spec:
+  ports:
+  - name: http
+    port: {{ .Values.service.port }}
+    protocol: {{ coalesce .Values.service.protocol "TCP" }}
+    targetPort: {{ .Values.service.targetPort }}
+  selector:
+    app: {{ .Values.application_name }}
+  sessionAffinity: None
+  type: {{ coalesce .Values.service.type "ClusterIP" }}
+{{- end }}
+{{- end }}

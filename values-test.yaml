@@ -1,0 +1,192 @@
+
+#if enabled true, creates deployment
+deployment:
+  enabled: true
+
+#if enabled true, creates statefulSet
+#statefulSet:
+#  enabled: false
+
+#general parameters to deployment or statefullset
+application_name: qqpag-app-bff
+image: nexus.qq:8123/appverdecard/bff:7.16.0.70f6e4497
+
+terminationGracePeriodSeconds: 30
+
+imagePullSecrets:
+  name: nexus
+
+labels: # {}
+  tags.datadoghq.com/env: hml
+  tags.datadoghq.com/service: qqpag-app-bff
+  tags.datadoghq.com/version: 7.16.0
+
+# include init containser commands
+initContainer:
+  image: alpine:3.16.0
+  command:
+    - sh
+    - -c
+    - (chmod 777 -R /home/node/temp)
+  volumeMounts:
+    - name: qqpag-app-bff-temp
+      mountPath: /home/node/temp
+
+#if enabled true, creates startupProbe
+startupProbe:
+  enabled: true
+  periodSeconds: 10
+  failureThreshold: 6
+  #if enabled true, use httpGet
+  httpGet:
+    enabled: true
+    port: 3000
+    path: /appverde_dev/v3/health
+
+#if enabled true, creates livenessProbe
+livenessProbe:
+  enabled: true
+  periodSeconds: 60
+  initialDelaySeconds: 60
+  #if enabled true, use httpGet
+  httpGet:
+    enabled: true
+    port: 3000
+    path: /appverde_dev/v3/health
+  #if enabled true, use exec command
+
+#all parameters bellow are required
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 1000m
+    memory: 768Mi
+
+command: [ "npm" ]
+args: [ "run", "start:dev" ]
+
+replicas: 2
+#---end of required parameters
+
+#if filled, creates tolerations
+tolerations:
+  key: node_group
+  value: application-private
+  effect: NoSchedule
+
+#if filled, creates affinity
+affinity:
+  #if filled, creates node affinity
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      key: node_group
+      values: application-private
+    preferredDuringSchedulingIgnoredDuringExecution:
+      weight: 1
+      key: node_group
+      values: application-private
+
+  #if filled, creates podAntiAffinity
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      weight: 100
+      key: app
+      values: qqpag-app-bff
+      topologyKey: kubernetes.io/hostname
+
+
+#if filled, creates evironment variables directly on deployment
+envVars:
+  DD_TRACE_ON: "true"
+  DD_LOGS_INJECTION: "true"
+  DD_RUNTIME_METRICS_ENABLED: "true"
+  DD_APPSEC_ENABLED: "true"
+  DD_SAMPLE_RATEBLED: "0.10"
+
+envVarsRef:
+  DD_AGENT_HOST:
+    valueFrom:
+      fieldRef:
+        fieldPath: status.hostIP
+
+configmap:
+  enabled: false
+  data:
+    CONFIG: 'config'
+
+#if filled, creates a opaque Secret containig all variables bellow
+secrets:
+  enabled: false
+  data:
+    SECRET: 'abc123'
+
+# Persistence PVC
+persistence:
+  enabled: true
+  pvcName: qqpag-app-bff-pvc
+  requestSize: 10Mi
+  limitSize: 56Mi
+  accessMode: ReadWriteOnce
+  storageClass: 'longhorn'
+
+## Persistence Mounts
+volumes:
+  - name: temp
+    dir: /home/node/temp
+    pvcName: qqpag-app-bff-pvc
+
+#if enabled, creates hpa
+hpa:
+  enabled: true
+  min: 1
+  max: 2
+#  memoryAverageUtilization: 80
+  cpuAverageUtilization: 300
+
+#if enabled, creates service
+service:
+  enabled: true
+  type: ClusterIP
+  protocol: TCP
+  port: 3000
+  targetPort: 3000
+
+#if enabled, creates Ingress
+ingress:
+  enabled: true
+  dns: qqpag-app-bff.app.dev-k8s.qq
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+  tls: true
+  caIssuer: ca-issuer-qq
+  paths:
+    - path: /appverde_dev
+      pathType: Prefix
+    - path: /webapps_hml
+      pathType: Prefix
+
+
+#if filled, creates Cronjobs based on list parameters bellow
+#cronJobs:
+#  - name: "cronJob1"
+#    image: alpine:latest
+#    schedule: "0 5 * * *"
+#    #if filled, creates commands based on list parameters bellow
+#    command:
+#      cmd:
+#        - /bin/sh
+#        - -c
+#        - "kubectl rollout restart deployment sisreg-api-login -n central-recebiveis"
+#
+#  - name: "cronJob2"
+#    image: curlimages/curl:7.83.1
+#    schedule: "*/1 * * * *"
+#    #if filled, creates Cronjobs based on list parameters bellow
+#    command:
+#      cmd:
+#        - /bin/sh
+#        - -ec
+#        - 'curl -X GET "http://pix-cobranca:4011/msb/demo-liquidacao-hml/v1/jobLiquidaAutomatico" --max-time 60'
+
