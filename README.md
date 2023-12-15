@@ -1,5 +1,5 @@
 ### Adicionar Repositório
-`` helm repo add qq-helm https://raw.githubusercontent.com/verdecard/qq-helm/main``
+`` helm repo add qq-helm https://raw.githubusercontent.com/VerdeCard/qq-helm/main``
 
 ### Listar repositorios
 `` helm search repo qq-helm/qq-helm ``
