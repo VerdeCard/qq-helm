@@ -136,7 +136,7 @@ persistence:
   requestSize: 1Gi
   limitSize: 1Gi
   accessMode: ReadWriteOnce
-  storageClass: '-'
+  storageClass: 'longhorn'
 
 
 ## Persistence Mounts
@@ -168,12 +168,15 @@ service:
 #if enabled, creates Ingress
 ingress:
   enabled: false
+  annotations: {}
   dns: dns.com.br
   tls: false
   caIssuer: ca-issuer-qq
-  path: /api
-  pathType: Prefix
-  annotations: {}
+  paths:
+    - path: /appverde_dev
+      pathType: Prefix
+    - path: /webapps_hml
+      pathType: Prefix
 
 
 #if filled, creates Cronjobs based on list parameters bellow
