@@ -16,9 +16,6 @@ spec:
   selector:
     matchLabels:
       app: {{ .Values.application_name }}
-      {{- with .Values.labels }}
-      {{- toYaml . | nindent 6 }}
-      {{- end }}
   template:
     metadata:
       labels:

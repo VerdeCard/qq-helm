@@ -3,7 +3,17 @@ entries:
   qq-helm:
   - apiVersion: v2
     appVersion: 1.0.0
-    created: "2024-01-02T18:45:00.935527-03:00"
+    created: "2024-01-04T19:18:51.213138-03:00"
+    description: Helm Chart Quero-Quero
+    digest: 41dc92c224e09a0a2d07b34edea4f7fdcfab6013a9d826f892f92502eb7bb2ce
+    name: qq-helm
+    type: application
+    urls:
+    - qq-helm-1.0.3.tgz
+    version: 1.0.3
+  - apiVersion: v2
+    appVersion: 1.0.0
+    created: "2024-01-04T19:18:51.205582-03:00"
     description: Helm Chart Quero-Quero
     digest: 44de7792d5258c6367cb10bff48b1aee930dfbf5e03657b052175e0bb83d1b65
     name: qq-helm
@@ -13,7 +23,7 @@ entries:
     version: 1.0.2
   - apiVersion: v2
     appVersion: 1.0.0
-    created: "2024-01-02T18:45:00.929438-03:00"
+    created: "2024-01-04T19:18:51.199061-03:00"
     description: Helm Chart Quero-Quero
     digest: f6a1a7f0a4040e554ccb1c0c69020a32bf10d50cb93279989ee418e768158149
     name: qq-helm
@@ -23,7 +33,7 @@ entries:
     version: 1.0.1
   - apiVersion: v2
     appVersion: 1.0.0
-    created: "2024-01-02T18:45:00.926967-03:00"
+    created: "2024-01-04T19:18:51.196351-03:00"
     description: Helm Chart Quero-Quero
     digest: 559b2e238dce6848ef49f20f74cdf7c6eefdd5852d8ecdcfba5c8ac5ae47c268
     name: qq-helm
@@ -31,4 +41,4 @@ entries:
     urls:
     - qq-helm-1.0.0.tgz
     version: 1.0.0
-generated: "2024-01-02T18:45:00.925156-03:00"
+generated: "2024-01-04T19:18:51.194573-03:00"
