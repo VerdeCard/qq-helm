@@ -94,7 +94,7 @@ spec:
           {{- if .Values.initContainer.volumeMounts }}
           volumeMounts:
             {{- range .Values.initContainer.volumeMounts }}
-            - name: {{ .name }}
+            - name: {{ $root.Values.application_name }}-{{ .name }}
               mountPath: {{ .mountPath }}
             {{- end}}
           {{- end}}

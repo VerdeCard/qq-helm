@@ -167,7 +167,7 @@ service:
 
 #if enabled, creates Ingress
 ingress:
-  enabled: false
+  enabled: true
   annotations: {}
   dns: dns.com.br
   tls: false
