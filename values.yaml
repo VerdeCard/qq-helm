@@ -10,6 +10,7 @@ statefulSet:
 #general parameters to deployment or statefullset
 application_name: qpp-name
 image: nginx:stable-alpine
+imagePullPolicy: IfNotPresent
 
 
 #terminationGracePeriodSeconds: 30

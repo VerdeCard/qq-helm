@@ -81,6 +81,7 @@ spec:
       containers:
       - name: {{ .Values.application_name }}
         image: {{ .Values.image }}
+        imagePullPolicy: {{ .Values.imagePullPolicy }}
         {{- if .Values.command  }}
         command:
           {{- range .Values.command  }}
