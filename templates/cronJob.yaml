@@ -1,17 +1,24 @@
 {{- if .Values.cronJobs }}
+{{- $root := . -}}
 {{- range $k, $job := .Values.cronJobs }}
 ---
 apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: {{ $job.name }}
-  namespace: {{ .Release.Namespace }}
+  namespace: {{ $root.Release.Namespace }}
 spec:
   schedule: {{ $job.schedule | quote }}
+  concurrencyPolicy: {{ $job.backoffLimit }}
+  successfulJobsHistoryLimit: {{ $job.successfulJobsHistoryLimit }}
+  failedJobsHistoryLimit: {{ $job.failedJobsHistoryLimit }}
   jobTemplate:
+    backoffLimit: {{ $job.backoffLimit }}
+    activeDeadlineSeconds: {{ $job.activeDeadlineSeconds }}
     spec:
       template:
         spec:
+          restartPolicy: {{ $job.restartPolicy }}
           containers:
             - name: {{ $job.name }}
               image: {{ $job.image }}
@@ -19,7 +26,6 @@ spec:
               command:
                 {{ toYaml $job.command.cmd | nindent 16 | trim }}
               {{- end }}
-          restartPolicy: OnFailure
 ---
 {{- end }}
 {{- end }}

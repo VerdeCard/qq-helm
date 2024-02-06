@@ -181,24 +181,36 @@ ingress:
 
 
 #if filled, creates Cronjobs based on list parameters bellow
-#cronJobs:
-#  - name: "cronJob1"
-#    image: alpine:latest
-#    schedule: "0 5 * * *"
-#    #if filled, creates commands based on list parameters bellow
-#    command:
-#      cmd:
-#        - /bin/sh
-#        - -c
-#        - "kubectl rollout restart deployment sisreg-api-login -n central-recebiveis"
-#
-#  - name: "cronJob2"
-#    image: curlimages/curl:7.83.1
-#    schedule: "*/1 * * * *"
-#    #if filled, creates Cronjobs based on list parameters bellow
-#    command:
-#      cmd:
-#        - /bin/sh
-#        - -ec
-#        - 'curl -X GET "http://pix-cobranca:4011/msb/demo-liquidacao-hml/v1/jobLiquidaAutomatico" --max-time 60'
+cronJobs:
+  - name: "cronJob1"
+    image: alpine:latest
+    schedule: "*/1 * * * *"
+    backoffLimit: 3
+    activeDeadlineSeconds: 60
+    concurrencyPolicy: Forbid
+    successfulJobsHistoryLimit: 3
+    failedJobsHistoryLimit: 3
+    restartPolicy: OnFailure
+    #if filled, creates commands based on list parameters bellow
+    command:
+      cmd:
+        - /bin/sh
+        - -c
+        - "echo 'Hello World1'"
+
+  - name: "cronJob2"
+    image: curlimages/curl:7.83.1
+    schedule: "*/1 * * * *"
+    backoffLimit: 3
+    activeDeadlineSeconds: 60
+    concurrencyPolicy: Forbid
+    successfulJobsHistoryLimit: 3
+    failedJobsHistoryLimit: 3
+    restartPolicy: OnFailure
+    #if filled, creates Cronjobs based on list parameters bellow
+    command:
+      cmd:
+        - /bin/sh
+        - -ec
+        - "echo 'Hello World2'"
 
