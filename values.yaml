@@ -160,7 +160,6 @@ hpa:
 
 #if enabled, creates service
 service:
-  enabled: false
   type: ClusterIP
   protocol: TCP
   port: 80
@@ -178,6 +177,11 @@ ingress:
       pathType: Prefix
     - path: /webapps_hml
       pathType: Prefix
+      # different service name for each path
+    - path: /blau
+      pathType: Prefix
+      serviceName: blau
+      servicePort: 80
 
 
 #if filled, creates Cronjobs based on list parameters bellow

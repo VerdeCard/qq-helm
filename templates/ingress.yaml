@@ -35,9 +35,15 @@ spec:
             pathType: {{ coalesce .pathType "Prefix" | quote }}
             backend:
               service:
+              {{- if .serviceName }}
+                name: {{ .serviceName }}
+                port:
+                  number: {{ .servicePort }}
+              {{- else }}
                 name: {{ $root.Values.application_name }}
                 port:
-                  number: {{ $root.Values.service.port }}
+                  number: {{ $root.Values.service.targetPort }}
+              {{- end }}
           {{- end }}
 {{ end }}
 {{ end }}
