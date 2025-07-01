@@ -19,6 +19,13 @@ imagePullSecrets:
 
 labels: {}
 
+rolloutStrategy:
+#  type: Recreate
+  type: RollingUpdate
+  maxSurge: 25%
+  maxUnavailable: 25%
+
+
 # include init containser commands
 #initContainer:
 #  image: alpine:3.16.0

@@ -16,6 +16,13 @@ spec:
   selector:
     matchLabels:
       app: {{ .Values.application_name }}
+
+  strategy:
+    type:  {{ .Values.rolloutStrategy.type | default "RollingUpdate" }}
+    rollingUpdate:
+      maxSurge: {{ .Values.rolloutStrategy.maxSurge | default "25%" }}
+      maxUnavailable: {{ .Values.rolloutStrategy.maxUnavailable | default "25%" }}
+
   template:
     metadata:
       labels:
