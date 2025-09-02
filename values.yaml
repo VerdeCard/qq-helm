@@ -19,6 +19,11 @@ imagePullSecrets:
 
 labels: {}
 
+annotations:
+  prometheus.io/scrape: 'true'
+  prometheus.io/path: '/appverde_hml/metrics'
+  prometheus.io/port: '3001'
+
 rolloutStrategy:
 #  type: Recreate
   type: RollingUpdate
@@ -167,10 +172,15 @@ hpa:
 
 #if enabled, creates service
 service:
+  enabled: false
   type: ClusterIP
   protocol: TCP
   port: 80
   targetPort: 80
+#  annotations:
+#    prometheus.io/scrape: 'true'
+#    prometheus.io/path: '/appverde_hml/metrics'
+#    prometheus.io/port: '3001'
 
 #if enabled, creates Ingress
 ingress:

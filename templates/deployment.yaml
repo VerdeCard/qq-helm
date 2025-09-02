@@ -25,6 +25,12 @@ spec:
 
   template:
     metadata:
+      {{- if .Values.annotations }}
+      annotations:
+        {{- with .Values.annotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- end}}
       labels:
         app: {{ .Values.application_name }}
         {{- with .Values.labels }}
