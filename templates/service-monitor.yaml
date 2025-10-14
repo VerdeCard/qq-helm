@@ -1,0 +1,24 @@
+{{- if .Values.metrics }}
+{{- if .Values.metrics.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ .Values.application_name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    release: rancher-monitoring
+spec:
+  namespaceSelector:
+    matchNames: ["{{ .Release.Namespace }}"]
+  selector:
+    matchLabels:
+      app: {{ .Values.application_name }}
+  endpoints:
+    - port: http
+      path: {{ .Values.metrics.path | default "/metrics" }}
+      interval: {{ .Values.metrics.interval | default "30s" }}
+      scrapeTimeout: {{ .Values.metrics.scrapeTimeout | default "10s" }}
+      scheme: http
+      honorLabels: true
+{{- end }}
+{{- end }}
