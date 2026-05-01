@@ -1,17 +1,43 @@
-{{- if and .Values.persistence.enabled }}
-kind: PersistentVolumeClaim
+{{- $volumesRaw := default dict .Values.volumes -}}
+{{- $volumes := dict -}}
+{{- if kindIs "map" $volumesRaw }}{{- $volumes = $volumesRaw -}}{{- end -}}
+{{- $pvc := default dict $volumes.pvc -}}
+{{- if and $pvc.create $pvc.claims }}
+{{- range $claim := $pvc.claims }}
+{{- if not $claim.claimName }}
+---
 apiVersion: v1
+kind: PersistentVolumeClaim
 metadata:
-  name: {{ .Values.application_name }}-pvc
+  name: {{ $claim.name }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+{{ include "helm_template.labels" $ | indent 4 }}
+spec:
+{{- if hasKey $claim "storageClassName" }}
+  storageClassName: {{ $claim.storageClassName | quote }}
+{{- end }}
+  accessModes:
+{{ toYaml (default (list "ReadWriteOnce") $claim.accessModes) | indent 4 }}
+  resources:
+    requests:
+      storage: {{ default "1Gi" $claim.size | quote }}
+{{- end }}
+{{- end }}
+{{- else if and .Values.persistence .Values.persistence.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "helm_template.fullname" . }}-pvc
   namespace: {{ .Release.Namespace }}
   labels:
-    app: {{ .Values.application_name }}
+{{ include "helm_template.labels" . | indent 4 }}
 spec:
 {{- if .Values.persistence.storageClass }}
 {{- if (eq "-" .Values.persistence.storageClass) }}
   storageClassName: ""
 {{- else }}
-  storageClassName: "{{ .Values.persistence.storageClass }}"
+  storageClassName: {{ .Values.persistence.storageClass | quote }}
 {{- end }}
 {{- end }}
   accessModes:
@@ -19,6 +45,8 @@ spec:
   resources:
     requests:
       storage: {{ .Values.persistence.requestSize | quote }}
+{{- if .Values.persistence.limitSize }}
     limits:
       storage: {{ .Values.persistence.limitSize | quote }}
+{{- end }}
 {{- end }}

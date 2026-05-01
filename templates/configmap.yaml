@@ -1,13 +1,14 @@
-{{ if .Values.configmap }}
-{{ if .Values.configmap.enabled }}
+{{- $configMaps := default dict .Values.configMaps -}}
+{{- $legacy := default dict .Values.configmap -}}
+{{- if or $configMaps.create $legacy.enabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ .Values.application_name }}
+  name: {{ include "helm_template.fullname" . }}
   namespace: {{ .Release.Namespace }}
+  labels:
+{{ include "helm_template.labels" . | indent 4 }}
 data:
-  {{- range $key, $val := .Values.configmap.data }}
-  {{ $key  }}: {{ $val | quote }}
-  {{- end }}
-{{ end }}
-{{ end }}
+{{- $data := default $legacy.data $configMaps.data }}
+{{ toYaml $data | indent 2 }}
+{{- end }}

@@ -1,36 +1,37 @@
-{{- if .Values.hpa }}
-{{- if .Values.hpa.enabled }}
+{{- $autoscaling := default dict .Values.autoscaling -}}
+{{- $hpa := default dict .Values.hpa -}}
+{{- if or $autoscaling.enabled $hpa.enabled }}
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: {{ .Values.application_name }}
+  name: {{ include "helm_template.fullname" . }}
   namespace: {{ .Release.Namespace }}
   labels:
-    app: {{ .Values.application_name }}
+{{ include "helm_template.labels" . | indent 4 }}
 spec:
-  minReplicas: {{ .Values.hpa.min }}
-  maxReplicas: {{ .Values.hpa.max }}
+  minReplicas: {{ default (default 1 $hpa.min) $autoscaling.minReplicas }}
+  maxReplicas: {{ default (default 2 $hpa.max) $autoscaling.maxReplicas }}
   scaleTargetRef:
     apiVersion: apps/v1
-    kind: Deployment
-    name: {{ .Values.application_name }}
+    kind: {{ include "helm_template.workloadType" . }}
+    name: {{ include "helm_template.fullname" . }}
   metrics:
-      {{- if .Values.hpa.cpuAverageUtilization}}
-      - type: Resource
-        resource:
-            name: cpu
-            target:
-                type: Utilization
-                averageUtilization: {{ .Values.hpa.cpuAverageUtilization }}
-      {{- end}}
-      {{- if .Values.hpa.memoryAverageUtilization}}
-      - type: Resource
-        resource:
-            name: memory
-            target:
-                type: Utilization
-                averageUtilization: {{ .Values.hpa.memoryAverageUtilization }}
-      {{- end}}
-
+{{- $cpu := default $hpa.cpuAverageUtilization $autoscaling.targetCPUUtilizationPercentage }}
+{{- $memory := default $hpa.memoryAverageUtilization $autoscaling.targetMemoryUtilizationPercentage }}
+{{- if $cpu }}
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ $cpu }}
+{{- end }}
+{{- if $memory }}
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: {{ $memory }}
 {{- end }}
 {{- end }}

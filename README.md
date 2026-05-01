@@ -1,25 +1,68 @@
-### Adicionar Repositório
-`` helm repo add qq-helm https://raw.githubusercontent.com/VerdeCard/qq-helm/main``
+# qq-helm-v2
 
-### Listar repositorios
-`` helm search repo qq-helm/qq-helm ``
+Chart Helm v2 da Quero-Quero, publicado como chart separado para migracao app por app.
 
-### Criando arquivo de values com base no exemplo
-`` heml show values > values.yaml ``
+## Harbor OCI
 
-### Testando Geracao dos Manifestos (dry-run)
-- Antes de executar valide o ambiente que seu kubectl esta apontando para o local correto `` kubectl config get-contexts ``
-- se for caso pode mudar com o comando `` kubectl config use-context :nome_contexto ``
-- Com o comando ``--dry-run`` o heml nao sera instalado, apenas vai printar os manifestos gerados
-- `` helm upgrade -i :deployment -n :namespace --values values.yaml qq-helm/qq-helm --dry-run``
+```bash
+helm upgrade --install :release \
+  -n :namespace \
+  --values values-v2.yml \
+  oci://harbor.mgm-k8s.qq/library/qq-helm/qq-helm-v2 \
+  --version 2.0.0 \
+  --atomic \
+  --timeout 5m \
+  --insecure-skip-tls-verify
+```
 
+## GitHub Helm Repo
 
-### Criando ou Atualizando Instalacao
-- Antes de executar valide o ambiente que seu kubectl esta apontando para o local correto `` kubectl config get-contexts `` 
-- se for caso pode mudar com o comando `` kubectl config use-context :nome_contexto ``
-- `` helm upgrade -i :deployment -n :namespace --values values.yaml qq-helm/qq-helm ``
+Use somente se houver repositorio/URL separado para v2, sem atualizar o `index.yaml` da `main` usada pelo v1.
 
+```bash
+helm repo add qq-helm-v2 :url-do-repo-v2
+helm upgrade --install :release -n :namespace --values values-v2.yml qq-helm-v2/qq-helm-v2
+```
 
+## Compatibilidade v1
 
-### Removendo Instalacao
-`` helm uninstall :deployment -n :namespace ``
+O chart aceita campos v1 durante a transicao quando fizer sentido. Valores novos tem prioridade sobre os antigos.
+
+Principais mapeamentos:
+
+- `application_name` preserva o nome dos recursos e o selector `app`.
+- `deployment.enabled` e `statefulSet.enabled` definem o tipo de workload quando `workload.type` nao for informado.
+- `envVars`, `envVarsRef`, `configmap`, `secrets`, `persistence`, `volumes`, `hpa` e `metrics` continuam aceitos.
+
+## Secret externo como env
+
+```yaml
+container:
+  env:
+    fromSecrets:
+      - name: DATABASE_PASSWORD
+        secretName: app-db-secret
+        key: password
+```
+
+## Secret externo como volume
+
+```yaml
+volumes:
+  existing:
+    - name: app-certificates
+      type: secret
+      secretName: app-tls-secret
+      mountPath: /etc/tls
+      readOnly: true
+```
+
+## Testes locais
+
+```bash
+helm lint .
+helm template test . --values values.yaml
+helm template test . --values examples/values-v1.yaml
+helm template test . --values examples/values-v2.yaml
+helm template test . --values examples/external-secret.yaml
+```

@@ -1,24 +1,29 @@
-{{- if .Values.metrics }}
-{{- if .Values.metrics.enabled }}
+{{- $serviceMonitor := default dict .Values.serviceMonitor -}}
+{{- $metrics := default dict .Values.metrics -}}
+{{- if or $serviceMonitor.enabled $metrics.enabled }}
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: {{ .Values.application_name }}
+  name: {{ include "helm_template.fullname" . }}
   namespace: {{ .Release.Namespace }}
   labels:
+{{- if $serviceMonitor.labels }}
+{{ toYaml $serviceMonitor.labels | indent 4 }}
+{{- else }}
     release: rancher-monitoring
+{{- end }}
 spec:
   namespaceSelector:
-    matchNames: ["{{ .Release.Namespace }}"]
+    matchNames:
+      - {{ .Release.Namespace | quote }}
   selector:
     matchLabels:
-      app: {{ .Values.application_name }}
+{{ include "helm_template.selectorLabels" . | indent 6 }}
   endpoints:
     - port: http
-      path: {{ .Values.metrics.path | default "/metrics" }}
-      interval: {{ .Values.metrics.interval | default "30s" }}
-      scrapeTimeout: {{ .Values.metrics.scrapeTimeout | default "10s" }}
+      path: {{ default (default "/metrics" $metrics.path) $serviceMonitor.path }}
+      interval: {{ default (default "30s" $metrics.interval) $serviceMonitor.interval }}
+      scrapeTimeout: {{ default (default "10s" $metrics.scrapeTimeout) $serviceMonitor.scrapeTimeout }}
       scheme: http
       honorLabels: true
-{{- end }}
 {{- end }}

@@ -1,27 +1,33 @@
-{{- if .Values.service }}
-{{- if .Values.service.enabled }}
+{{- $service := default dict .Values.service -}}
+{{- if $service.enabled }}
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ .Values.application_name }}
+  name: {{ include "helm_template.fullname" . }}
   namespace: {{ .Release.Namespace }}
   labels:
-    app: {{ .Values.application_name }}
-{{- if .Values.service.annotations }}
+{{ include "helm_template.labels" . | indent 4 }}
+{{- if $service.annotations }}
   annotations:
-    {{- with .Values.service.annotations }}
-    {{- toYaml . | nindent 4 }}
-    {{- end }}
+{{ toYaml $service.annotations | indent 4 }}
 {{- end }}
 spec:
   ports:
-  - name: http
-    port: {{ .Values.service.port }}
-    protocol: {{ coalesce .Values.service.protocol "TCP" }}
-    targetPort: {{ .Values.service.targetPort }}
-  selector:
-    app: {{ .Values.application_name }}
-  sessionAffinity: None
-  type: {{ coalesce .Values.service.type "ClusterIP" }}
+{{- if and $service.port $service.targetPort }}
+    - name: http
+      port: {{ default 80 $service.port }}
+      protocol: {{ default "TCP" $service.protocol }}
+      targetPort: {{ default (default 80 $service.port) $service.targetPort }}
+{{- else if $service.ports }}
+{{ toYaml $service.ports | indent 4 }}
+{{- else }}
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: http
 {{- end }}
+  selector:
+{{ include "helm_template.selectorLabels" . | indent 4 }}
+  sessionAffinity: None
+  type: {{ default "ClusterIP" $service.type }}
 {{- end }}

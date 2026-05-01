@@ -1,31 +1,37 @@
 {{- if .Values.cronJobs }}
-{{- $root := . -}}
-{{- range $k, $job := .Values.cronJobs }}
+{{- range $job := .Values.cronJobs }}
 ---
 apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: {{ $job.name }}
-  namespace: {{ $root.Release.Namespace }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+{{ include "helm_template.labels" $ | indent 4 }}
 spec:
   schedule: {{ $job.schedule | quote }}
-  concurrencyPolicy: {{ $job.backoffLimit }}
-  successfulJobsHistoryLimit: {{ $job.successfulJobsHistoryLimit }}
-  failedJobsHistoryLimit: {{ $job.failedJobsHistoryLimit }}
+  concurrencyPolicy: {{ default "Forbid" $job.concurrencyPolicy }}
+  successfulJobsHistoryLimit: {{ default 3 $job.successfulJobsHistoryLimit }}
+  failedJobsHistoryLimit: {{ default 3 $job.failedJobsHistoryLimit }}
   jobTemplate:
-    backoffLimit: {{ $job.backoffLimit }}
-    activeDeadlineSeconds: {{ $job.activeDeadlineSeconds }}
     spec:
+      backoffLimit: {{ default 3 $job.backoffLimit }}
+{{- if $job.activeDeadlineSeconds }}
+      activeDeadlineSeconds: {{ $job.activeDeadlineSeconds }}
+{{- end }}
       template:
         spec:
-          restartPolicy: {{ $job.restartPolicy }}
+          restartPolicy: {{ default "OnFailure" $job.restartPolicy }}
           containers:
             - name: {{ $job.name }}
               image: {{ $job.image }}
-              {{- if $job.command }}
+{{- if $job.command }}
               command:
-                {{ toYaml $job.command.cmd | nindent 16 | trim }}
-              {{- end }}
----
+{{ toYaml (default $job.command $job.command.cmd) | indent 16 }}
+{{- end }}
+{{- if $job.args }}
+              args:
+{{ toYaml $job.args | indent 16 }}
+{{- end }}
 {{- end }}
 {{- end }}

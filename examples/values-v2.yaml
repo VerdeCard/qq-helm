@@ -1,0 +1,53 @@
+fullnameOverride: app-v2
+
+workload:
+  enabled: true
+  type: Deployment
+  replicas: 2
+
+image:
+  repository: nginx
+  tag: stable-alpine
+  pullPolicy: IfNotPresent
+  pullSecrets:
+    - name: nexus
+
+container:
+  ports:
+    - name: http
+      containerPort: 80
+      protocol: TCP
+  env:
+    plain:
+      X_ENV: abc
+  envFrom:
+    configMaps:
+      - shared-config
+
+configMaps:
+  create: true
+  data:
+    CONFIG: config
+
+service:
+  enabled: true
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+      protocol: TCP
+
+ingress:
+  enabled: true
+  hosts:
+    - host: app-v2.example.com
+      paths:
+        - path: /app
+          pathType: Prefix
+          servicePort: http
+
+autoscaling:
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUUtilizationPercentage: 80

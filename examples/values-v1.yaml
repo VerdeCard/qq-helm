@@ -1,0 +1,61 @@
+deployment:
+  enabled: true
+statefulSet:
+  enabled: false
+
+application_name: app-v1
+image: nginx:stable-alpine
+imagePullPolicy: IfNotPresent
+imagePullSecrets:
+  name: nexus
+
+replicas: 1
+labels:
+  tier: backend
+annotations:
+  prometheus.io/scrape: "true"
+
+envVars:
+  X_ENV: abc
+envVarsRef:
+  HOST_IP:
+    valueFrom:
+      fieldRef:
+        fieldPath: status.hostIP
+
+configmap:
+  enabled: true
+  data:
+    CONFIG: config
+
+secrets:
+  enabled: true
+  data:
+    SECRET: secret
+
+service:
+  enabled: true
+  type: ClusterIP
+  protocol: TCP
+  port: 80
+  targetPort: 80
+
+ingress:
+  enabled: true
+  annotations: {}
+  dns: app-v1.example.com
+  tls: false
+  caIssuer: ca-issuer-qq
+  paths:
+    - path: /app
+      pathType: Prefix
+
+hpa:
+  enabled: true
+  min: 1
+  max: 2
+  cpuAverageUtilization: 80
+
+metrics:
+  enabled: true
+  path: /metrics

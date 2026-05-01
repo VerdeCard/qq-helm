@@ -1,49 +1,66 @@
-{{ if .Values.ingress }}
-{{ if .Values.ingress.enabled }}
+{{- $ingress := default dict .Values.ingress -}}
+{{- if $ingress.enabled }}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ .Values.application_name }}
+  name: {{ include "helm_template.fullname" . }}
   namespace: {{ .Release.Namespace }}
   labels:
-    app: {{ .Values.application_name }}
-  {{- if or .Values.ingress.annotations .Values.ingress.tls }}
+{{ include "helm_template.labels" . | indent 4 }}
+{{- if or $ingress.annotations $ingress.tls }}
   annotations:
-    {{- if .Values.ingress.caIssuer }}
-    cert-manager.io/cluster-issuer: {{ .Values.ingress.caIssuer | quote }}
-    cert-manager.io/common-name: {{ .Values.ingress.dns | quote }}
-    {{- end}}
-  {{- with .Values.ingress.annotations }}
-  {{- toYaml . | nindent 4  }}
-  {{- end }}
-  {{- end }}
+{{- if and $ingress.caIssuer (not $ingress.hosts) }}
+    cert-manager.io/cluster-issuer: {{ $ingress.caIssuer | quote }}
+    cert-manager.io/common-name: {{ $ingress.dns | quote }}
+{{- end }}
+{{- with $ingress.annotations }}
+{{ toYaml . | indent 4 }}
+{{- end }}
+{{- end }}
 spec:
-  ingressClassName: nginx
-  {{- if .Values.ingress.tls }}
+  ingressClassName: {{ default "nginx" $ingress.className }}
+{{- if $ingress.tls }}
   tls:
+{{- if kindIs "bool" $ingress.tls }}
     - hosts:
-        - {{ .Values.ingress.dns }}
-      secretName: {{ .Values.ingress.dns }}-tls
-  {{- end}}
+        - {{ $ingress.dns }}
+      secretName: {{ $ingress.dns }}-tls
+{{- else }}
+{{ toYaml $ingress.tls | indent 4 }}
+{{- end }}
+{{- end }}
   rules:
-    - host: {{ .Values.ingress.dns }}
+{{- if $ingress.hosts }}
+{{- range $host := $ingress.hosts }}
+    - host: {{ $host.host }}
       http:
         paths:
-          {{- $root := . -}}
-          {{ range .Values.ingress.paths }}
-          - path: {{ .path  }}
-            pathType: {{ coalesce .pathType "Prefix" | quote }}
+{{- range $path := $host.paths }}
+          - path: {{ $path.path }}
+            pathType: {{ default "Prefix" $path.pathType }}
             backend:
               service:
-              {{- if .serviceName }}
-                name: {{ .serviceName }}
+                name: {{ default (include "helm_template.fullname" $) $path.serviceName }}
                 port:
-                  number: {{ .servicePort }}
-              {{- else }}
-                name: {{ $root.Values.application_name }}
+                  {{- if kindIs "string" (default "http" $path.servicePort) }}
+                  name: {{ default "http" $path.servicePort }}
+                  {{- else }}
+                  number: {{ default 80 $path.servicePort }}
+                  {{- end }}
+{{- end }}
+{{- end }}
+{{- else }}
+    - host: {{ $ingress.dns }}
+      http:
+        paths:
+{{- range $path := $ingress.paths }}
+          - path: {{ $path.path }}
+            pathType: {{ default "Prefix" $path.pathType }}
+            backend:
+              service:
+                name: {{ default (include "helm_template.fullname" $) $path.serviceName }}
                 port:
-                  number: {{ $root.Values.service.targetPort }}
-              {{- end }}
-          {{- end }}
-{{ end }}
-{{ end }}
+                  number: {{ default $.Values.service.port $path.servicePort }}
+{{- end }}
+{{- end }}
+{{- end }}

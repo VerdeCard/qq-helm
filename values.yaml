@@ -1,228 +1,113 @@
-#if enabled true, creates deployment
-deployment:
+nameOverride: ""
+fullnameOverride: ""
+
+workload:
   enabled: true
+  type: Deployment
+  replicas: 1
+  revisionHistoryLimit: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+  podAnnotations: {}
+  podLabels: {}
+  terminationGracePeriodSeconds: null
 
-#if enabled true, creates statefulSet
-statefulSet:
-  enabled: false
+image:
+  repository: nginx
+  tag: stable-alpine
+  pullPolicy: IfNotPresent
+  pullSecrets:
+    - name: nexus
 
-#general parameters to deployment or statefullset
-application_name: qpp-name
-image: nginx:stable-alpine
-imagePullPolicy: IfNotPresent
+container:
+  name: ""
+  command: []
+  args: []
+  ports:
+    - name: http
+      containerPort: 80
+      protocol: TCP
+  env:
+    plain: {}
+    valueFrom: []
+    fromSecrets: []
+    fromConfigMaps: []
+  envFrom:
+    configMaps: []
+    secrets: []
 
-#terminationGracePeriodSeconds: 30
-imagePullSecrets:
-  name: nexus
+initContainers: []
 
-labels: {}
-annotations: {}
-
-rolloutStrategy:
-  #  type: Recreate
-  type: RollingUpdate
-  maxSurge: 25%
-  maxUnavailable: 25%
-
-# include init containser commands
-#initContainer:
-#  image: alpine:3.16.0
-#  command:
-#    - sh
-#    - -c
-#    - (chmod 777 -R /home/node/temp)
-#  volumeMounts:
-#    - name: pix-bcb-core-data
-#      mountPath: /home/node/temp
-
-#if enabled true, creates startupProbe
-startupProbe:
-  enabled: false
-  periodSeconds: 10
-  failureThreshold: 6
-  #if enabled true, use httpGet
-  httpGet:
+probes:
+  startup:
     enabled: false
-    port: 80
-    path: /api/health
-  #if enabled true, use exec command
-  command:
+    periodSeconds: 10
+    failureThreshold: 6
+    httpGet: null
+    exec: null
+  liveness:
     enabled: false
-    cmd:
-      - curl
-      - --fail
-      - http://localhost:80
-#if enabled true, creates livenessProbe
-livenessProbe:
-  enabled: false
-  periodSeconds: 60
-  initialDelaySeconds: 60
-  #if enabled true, use httpGet
-  httpGet:
-    enabled: false
-    port: 80
-    path: /api/health
-  #if enabled true, use exec command
-  command:
-    enabled: false
-    cmd:
-      - curl
-      - --fail
-      - http://localhost:80
+    periodSeconds: 60
+    initialDelaySeconds: 60
+    httpGet: null
+    exec: null
 
-#all parameters bellow are required
 resources: {}
-#  requests:
-#    memory: 64Mi
-#    cpu: 100m
-#  limits:
-#    memory: 128Mi
-#    cpu: 500m
 
-command: []
-args: []
+configMaps:
+  create: false
+  data: {}
 
-replicas: 1
-#---end of required parameters
-
-#if filled, creates tolerations
-#tolerations:
-#  key: node_group
-#  value: application-private
-#  effect: NoSchedule
-
-#if filled, creates affinity
-#affinity:
-#  #if filled, creates node affinity
-#  nodeAffinity:
-#    requiredDuringSchedulingIgnoredDuringExecution:
-#      key: node_group
-#      values: application-private
-#    preferredDuringSchedulingIgnoredDuringExecution:
-#      weight: 1
-#      key: node_group
-#      values: application-private
-#
-#  #if filled, creates podAntiAffinity
-#  podAntiAffinity:
-#    preferredDuringSchedulingIgnoredDuringExecution:
-#      weight: 100
-#      key: app.kubernetes.io/instance
-#      values: qqpag-app-bff
-#      topologyKey: kubernetes.io/hostname # Fixo - Label do NODE para antiAffinity
-
-#if filled, creates evironment variables directly on deployment
-#envVars:
-#  X_ENV: "abc"
-
-#envVarsRef:
-#  X_HOST:
-#    valueFrom:
-#      fieldRef:
-#        fieldPath: status.hostIP
-
-configmap:
-  enabled: false
-#  data:
-#    CONFIG: 'config'
-
-#if filled, creates a opaque Secret containig all variables bellow
 secrets:
-  enabled: false
-#  data:
-#    SECRET: 'secret'
+  create: false
+  type: Opaque
+  data: {}
+  stringData: {}
 
-# Persistence PVC
-persistence:
-  enabled: false
-  pvcName: qpp-name-pvc
-  requestSize: 1Gi
-  limitSize: 1Gi
-  accessMode: ReadWriteOnce
-  storageClass: "longhorn"
+volumes:
+  pvc:
+    create: false
+    claims: []
+  existing: []
 
-## Persistence Mounts
-#volumes:
-#  - name: temp
-#    dir: /home/node/temp
-#    pvcName: qpp-name-pvc
-#    # pode ser indicado um pvc criado por fora do helm
-#  - name: data
-#    dir: /home/node/data
-#    pvcName: qpp-name-pvc
-
-#if enabled, creates hpa
-hpa:
-  enabled: false
-#  min: 1
-#  max: 2
-#  memoryAverageUtilization: 80
-#  cpuAverageUtilization: 300
-
-#if enabled, creates service
 service:
   enabled: false
   type: ClusterIP
-  protocol: TCP
-  port: 80
-  targetPort: 80
+  annotations: {}
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+      protocol: TCP
 
-#if enabled, creates Ingress
 ingress:
   enabled: false
+  className: nginx
   annotations: {}
-  dns: dns.com.br
-  tls: false
-  caIssuer: ca-issuer-qq
-  paths:
-    - path: /appverde_dev
-      pathType: Prefix
-    - path: /webapps_hml
-      pathType: Prefix
-      # different service name for each path
-    - path: /blau
-      pathType: Prefix
-      serviceName: blau
-      servicePort: 80
+  hosts: []
+  tls: []
 
-# if enable metricas do promet
-metrics:
+autoscaling:
   enabled: false
-  path: "/metrics"
-  interval: "30s"
-  scrapeTimeout: "10s"
-#
-#
-#if filled, creates Cronjobs based on list parameters bellow
-#cronJobs:
-#  - name: "cronJob1"
-#    image: alpine:latest
-#    schedule: "*/1 * * * *"
-#    backoffLimit: 3
-#    activeDeadlineSeconds: 60
-#    concurrencyPolicy: Forbid
-#    successfulJobsHistoryLimit: 3
-#    failedJobsHistoryLimit: 3
-#    restartPolicy: OnFailure
-#    #if filled, creates commands based on list parameters bellow
-#    command:
-#      cmd:
-#        - /bin/sh
-#        - -c
-#        - "echo 'Hello World1'"
-#
-#  - name: "cronJob2"
-#    image: curlimages/curl:7.83.1
-#    schedule: "*/1 * * * *"
-#    backoffLimit: 3
-#    activeDeadlineSeconds: 60
-#    concurrencyPolicy: Forbid
-#    successfulJobsHistoryLimit: 3
-#    failedJobsHistoryLimit: 3
-#    restartPolicy: OnFailure
-#    #if filled, creates Cronjobs based on list parameters bellow
-#    command:
-#      cmd:
-#        - /bin/sh
-#        - -ec
-#        - "echo 'Hello World2'"
+  minReplicas: 1
+  maxReplicas: 2
+  targetCPUUtilizationPercentage: null
+  targetMemoryUtilizationPercentage: null
+
+serviceMonitor:
+  enabled: false
+  labels:
+    release: rancher-monitoring
+  path: /metrics
+  interval: 30s
+  scrapeTimeout: 10s
+
+scheduling:
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+cronJobs: []
