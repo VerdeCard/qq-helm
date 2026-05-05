@@ -51,3 +51,21 @@ autoscaling:
   minReplicas: 1
   maxReplicas: 3
   targetCPUUtilizationPercentage: 80
+
+scaledObject:
+  enabled: true
+  minReplicaCount: 1
+  maxReplicaCount: 4
+  pollingInterval: 30
+  cooldownPeriod: 120
+  triggers:
+    - type: rabbitmq
+      metadata:
+        queueName: queue
+        host: amqp://admin:admin@localhost:5672
+        queueLength: "20"
+    - type: cron
+      metadata:
+        start: 0 19 * * 1-5
+        end: 0 21 * * 1-5
+        desiredReplicas: "3"

@@ -97,6 +97,14 @@ autoscaling:
   targetCPUUtilizationPercentage: null
   targetMemoryUtilizationPercentage: null
 
+scaledObject:
+  enabled: false
+  minReplicaCount: 1
+  maxReplicaCount: 4
+  pollingInterval: null
+  cooldownPeriod: null
+  triggers: []
+
 serviceMonitor:
   enabled: false
   labels:

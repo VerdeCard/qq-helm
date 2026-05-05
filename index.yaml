@@ -3,7 +3,7 @@ entries:
   qq-helm:
   - apiVersion: v2
     appVersion: 1.0.0
-    created: "2025-10-14T18:29:36.197527-03:00"
+    created: "2026-05-05T15:39:45.703763-03:00"
     description: Helm Chart Quero-Quero
     digest: fa197de8572e3b2739430851da847879ce5c1252484f4f8889ef6260893474aa
     name: qq-helm
@@ -13,7 +13,7 @@ entries:
     version: 1.0.8
   - apiVersion: v2
     appVersion: 1.0.0
-    created: "2025-10-14T18:29:36.19098-03:00"
+    created: "2026-05-05T15:39:45.698583-03:00"
     description: Helm Chart Quero-Quero
     digest: 1f154a2148a311ce87e8281a336874a0e5eb164313bd9759590b90413e8196e3
     name: qq-helm
@@ -23,7 +23,7 @@ entries:
     version: 1.0.7
   - apiVersion: v2
     appVersion: 1.0.0
-    created: "2025-10-14T18:29:36.189182-03:00"
+    created: "2026-05-05T15:39:45.697572-03:00"
     description: Helm Chart Quero-Quero
     digest: ef5089fc8bb95c859de8d650b612c32f95affdc8f8c8dac6533ea067be03c5e4
     name: qq-helm
@@ -33,7 +33,7 @@ entries:
     version: 1.0.6
   - apiVersion: v2
     appVersion: 1.0.0
-    created: "2025-10-14T18:29:36.188009-03:00"
+    created: "2026-05-05T15:39:45.69681-03:00"
     description: Helm Chart Quero-Quero
     digest: a79ddeceb146e359ce167a0882af05c3739420191cda17832adec39c4f11900d
     name: qq-helm
@@ -43,7 +43,7 @@ entries:
     version: 1.0.5
   - apiVersion: v2
     appVersion: 1.0.0
-    created: "2025-10-14T18:29:36.187163-03:00"
+    created: "2026-05-05T15:39:45.696097-03:00"
     description: Helm Chart Quero-Quero
     digest: 14b0b2dbc99003262aea93833c7153840d575905dee01e828031d614094232a3
     name: qq-helm
@@ -51,4 +51,15 @@ entries:
     urls:
     - qq-helm-1.0.4.tgz
     version: 1.0.4
-generated: "2025-10-14T18:29:36.186012-03:00"
+  qq-helm-v2:
+  - apiVersion: v2
+    appVersion: 1.0.0
+    created: "2026-05-05T15:39:45.706288-03:00"
+    description: Helm Chart Quero-Quero
+    digest: 98f1c8c2b60ed152dc84fdc24947fae98763efc62a66d8fdbc13a35b2bb427fd
+    name: qq-helm-v2
+    type: application
+    urls:
+    - qq-helm-v2-2.0.0.tgz
+    version: 2.0.0
+generated: "2026-05-05T15:39:45.694653-03:00"

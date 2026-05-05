@@ -1,0 +1,31 @@
+{{- $scaledObject := default dict .Values.scaledObject -}}
+{{- if $scaledObject.enabled }}
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: {{ include "helm_template.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+{{ include "helm_template.labels" . | indent 4 }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: {{ include "helm_template.workloadType" . }}
+    name: {{ include "helm_template.fullname" . }}
+  minReplicaCount: {{ default 1 $scaledObject.minReplicaCount }}
+  maxReplicaCount: {{ default 4 $scaledObject.maxReplicaCount }}
+{{- if $scaledObject.pollingInterval }}
+  pollingInterval: {{ $scaledObject.pollingInterval }}
+{{- end }}
+{{- if $scaledObject.cooldownPeriod }}
+  cooldownPeriod: {{ $scaledObject.cooldownPeriod }}
+{{- end }}
+  triggers:
+{{- range $trigger := $scaledObject.triggers }}
+    - type: {{ $trigger.type }}
+      metadata:
+{{- range $key, $value := $trigger.metadata }}
+        {{ $key }}: {{ $value | quote }}
+{{- end }}
+{{- end }}
+{{- end }}
