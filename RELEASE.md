@@ -1,6 +1,8 @@
 ### Commit Atualizações
-`` helm package . --version 1.0.0 `` *incrementar version*
-`` helm repo index .``
-`` git add .``
-`` git commit -m "[Release - 1.0.0]" -m "Release Inicial" ``
-`` git push origin main ``
+``` 
+helm package . --version 2.0.1 `` *incrementar version*
+helm repo index .
+git add .
+git commit -m "[Release - 1.0.0]" -m "Release Inicial"
+git push origin main 
+```

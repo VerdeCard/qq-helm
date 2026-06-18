@@ -9,7 +9,7 @@ helm upgrade --install :release \
   -n :namespace \
   --values values-v2.yml \
   oci://harbor.mgm-k8s.qq/library/qq-helm/qq-helm-v2 \
-  --version 2.0.0 \
+  --version 2.0.1 \
   --atomic \
   --timeout 5m \
   --insecure-skip-tls-verify

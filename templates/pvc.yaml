@@ -22,6 +22,10 @@ spec:
   resources:
     requests:
       storage: {{ default "1Gi" $claim.size | quote }}
+{{- if $claim.limitSize }}
+    limits:
+      storage: {{ $claim.limitSize | quote }}
+{{- end }}
 {{- end }}
 {{- end }}
 {{- else if and .Values.persistence .Values.persistence.enabled }}
