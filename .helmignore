@@ -30,3 +30,13 @@ temp?
 
 # jetbreas
 .idea
+
+# release/package artifacts
+*.tgz
+index.yaml
+.DS_Store
+.idea/
+docs/
+examples/
+README.md
+RELEASE.md
